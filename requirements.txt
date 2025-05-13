@@ -3,3 +3,4 @@ python-docx
 openpyxl
 pillow
 pandas
+python-telegram-bot==13.15
