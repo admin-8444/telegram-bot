@@ -55,27 +55,39 @@ def band_qidirish(update: Update, context: CallbackContext):
     df = pd.read_excel("bandlar.xlsx").dropna()
     topilganlar = df["Hujjat bandi"].dropna().tolist()
     natija = [b for b in topilganlar if query in b.lower()][:5]
+
     if not natija:
         update.message.reply_text("Hech narsa topilmadi. Yana urinib ko‘ring:")
         return BAND_QIDIRISH
 
-    tugmalar = [[InlineKeyboardButton(band, callback_data=band)] for band in natija]
+    context.user_data["bandlar_topilgan"] = natija  # saqlab qo‘yamiz
+
+    tugmalar = [
+        [InlineKeyboardButton(band[:50] + "...", callback_data=str(i))]  # qisqartirilgan matn
+        for i, band in enumerate(natija)
+    ]
     reply_markup = InlineKeyboardMarkup(tugmalar)
     update.message.reply_text("Quyidagilardan birini tanlang:", reply_markup=reply_markup)
     return BAND_QIDIRISH
 
+
 def band_tanlandi(update: Update, context: CallbackContext):
     query = update.callback_query
     query.answer()
-    band = query.data
+
+    idx = int(query.data)
+    band = context.user_data.get("bandlar_topilgan", [])[idx]
+
     band_obj = {"matn": band, "muddat": context.user_data["nazorat"]}
     context.user_data.setdefault("bandlar", []).append(band_obj)
+
     if len(context.user_data["bandlar"]) >= 5:
         query.edit_message_text("Bandlar tanlandi. Hujjatlar tayyorlanmoqda...")
         return generate_docs(query.message.chat_id, context)
     else:
-        query.edit_message_text("Band qo‘shildi. Yana band izlang:")
+        query.edit_message_text("Band qo‘shildi. Yana izlang:")
         return BAND_QIDIRISH
+
 
 def generate_docs(chat_id, context: CallbackContext):
     data = context.user_data
