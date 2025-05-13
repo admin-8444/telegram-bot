@@ -116,7 +116,7 @@ def cancel(update: Update, context: CallbackContext):
 
 def main():
     TOKEN = os.getenv("BOT_TOKEN")
-    updater = Updater(TOKEN)
+    updater = Updater(TOKEN, drop_pending_updates=True)  # YANGILANDI
     dp = updater.dispatcher
 
     conv_handler = ConversationHandler(
